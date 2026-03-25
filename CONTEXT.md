@@ -90,7 +90,7 @@ The official Linear TypeScript SDK provides typed models, pagination, and auth h
 ### Implementation details
 - **Issue commands:** `scan`, `get`, `update`, `comment`, `relate`, `create`
 - **Project commands:** `project create`, `project get`, `project list`
-- **Update extensions:** `--project` and `--remove-project` flags to assign issues to projects
+- **Update extensions:** `--project` and `--remove-project` flags to assign issues to projects, `--estimate` and `--priority` flags for point estimates and priority levels
 - **Config:** `LINEAR_API_KEY` env var (required), `--team` flag / `LINEAR_TEAM_KEY` env var for team scoping
 - **Output:** JSON by default, `--human` flag for debugging
 - **Exit codes:** 0 (success), 1 (input error), 2 (unreachable), 3 (auth failure), 4 (rate limited)

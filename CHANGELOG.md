@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0 (2026-03-25)
+
+### New: Estimate and priority management
+
+You can now set point estimates and priority levels when creating or updating issues:
+
+```bash
+linear-bridge update ENG-42 --estimate 3
+linear-bridge update ENG-42 --priority 2
+linear-bridge create "New task" --estimate 5 --priority 1
+```
+
+- **`--estimate <number>`** — Set a point estimate (must be a positive number)
+- **`--priority <number>`** — Set priority: 0=None, 1=Urgent, 2=High, 3=Medium, 4=Low
+
+Both flags include input validation with clear error messages. The `get` and `scan` commands now include estimate and priority fields in their output.
+
+---
+
 ## 0.2.0 (2026-03-24)
 
 ### New: Project management

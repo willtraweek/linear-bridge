@@ -9,6 +9,8 @@ interface UpdateOpts {
   removeLabel?: string[];
   project?: string;
   removeProject?: boolean;
+  estimate?: number;
+  priority?: number;
 }
 
 interface UpdateResult {
@@ -17,6 +19,8 @@ interface UpdateResult {
   title: string;
   state: string;
   labels: string[];
+  estimate: number | null;
+  priority: number;
 }
 
 export async function update(
@@ -24,9 +28,9 @@ export async function update(
   issueId: string,
   opts: UpdateOpts
 ): Promise<UpdateResult> {
-  if (!opts.state && !opts.addLabel?.length && !opts.removeLabel?.length && !opts.project && !opts.removeProject) {
+  if (!opts.state && !opts.addLabel?.length && !opts.removeLabel?.length && !opts.project && !opts.removeProject && opts.estimate === undefined && opts.priority === undefined) {
     throw new InputError(
-      "At least one update flag required: --state, --add-label, --remove-label, --project, or --remove-project"
+      "At least one update flag required: --state, --add-label, --remove-label, --project, --remove-project, --estimate, or --priority"
     );
   }
 
@@ -105,6 +109,16 @@ export async function update(
     await ctx.client.updateIssue(issue.id, { projectId: null });
   }
 
+  // Set estimate
+  if (opts.estimate !== undefined) {
+    await ctx.client.updateIssue(issue.id, { estimate: opts.estimate });
+  }
+
+  // Set priority
+  if (opts.priority !== undefined) {
+    await ctx.client.updateIssue(issue.id, { priority: opts.priority });
+  }
+
   // Re-fetch for response
   const updated = await ctx.client.issue(issueId);
   const updatedState = await updated.state;
@@ -116,5 +130,7 @@ export async function update(
     title: updated.title,
     state: updatedState?.name || "Unknown",
     labels: updatedLabels,
+    estimate: updated.estimate,
+    priority: updated.priority,
   };
 }

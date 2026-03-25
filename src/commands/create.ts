@@ -7,6 +7,8 @@ interface CreateOpts {
   parent?: string;
   state?: string;
   label?: string[];
+  estimate?: number;
+  priority?: number;
 }
 
 interface CreateResult {
@@ -16,6 +18,8 @@ interface CreateResult {
   state: string;
   parent: string | null;
   url: string;
+  estimate: number | null;
+  priority: number;
 }
 
 export async function create(
@@ -81,6 +85,8 @@ export async function create(
     parentId,
     stateId,
     labelIds,
+    estimate: opts.estimate,
+    priority: opts.priority,
   });
   const created = await payload.issue;
   if (!created) {
@@ -97,5 +103,7 @@ export async function create(
     state: createdState?.name || "Unknown",
     parent: parentIssue?.identifier || null,
     url: created.url,
+    estimate: created.estimate,
+    priority: created.priority,
   };
 }

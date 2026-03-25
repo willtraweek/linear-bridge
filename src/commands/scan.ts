@@ -65,6 +65,7 @@ export async function scan(
       commentCount: (await issue.comments()).nodes.length,
       hasSubIssues: children.nodes.length > 0,
       priority: issue.priority,
+      estimate: issue.estimate,
       assignee: (await issue.assignee)?.name || null,
     });
   }

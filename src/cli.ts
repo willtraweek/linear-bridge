@@ -88,7 +88,17 @@ program
   .option("--remove-label <name>", "Remove a label (repeatable)", collect, [])
   .option("--project <name-or-id>", "Assign issue to a project (by name or UUID)")
   .option("--remove-project", "Remove issue from its current project")
+  .option("--estimate <number>", "Set point estimate", parseFloat)
+  .option("--priority <number>", "Set priority: 0=None, 1=Urgent, 2=High, 3=Medium, 4=Low", parseInt)
   .action(async (issueId, opts) => {
+    if (opts.estimate !== undefined && (isNaN(opts.estimate) || opts.estimate <= 0)) {
+      console.error(JSON.stringify({ error: "Estimate must be a positive number." }));
+      process.exit(1);
+    }
+    if (opts.priority !== undefined && (isNaN(opts.priority) || opts.priority < 0 || opts.priority > 4)) {
+      console.error(JSON.stringify({ error: "Priority must be 0-4: 0=None, 1=Urgent, 2=High, 3=Medium, 4=Low." }));
+      process.exit(1);
+    }
     const globalOpts = program.opts();
     await runCommand(globalOpts, (ctx) =>
       update(ctx, issueId, {
@@ -97,6 +107,8 @@ program
         removeLabel: opts.removeLabel,
         project: opts.project,
         removeProject: opts.removeProject,
+        estimate: opts.estimate,
+        priority: opts.priority,
       })
     );
   });
@@ -168,7 +180,17 @@ program
   .option("--parent <issue-id>", "Parent issue ID to create as sub-issue")
   .option("--state <name>", "Initial workflow state")
   .option("--label <name>", "Add a label (repeatable)", collect, [])
+  .option("--estimate <number>", "Set point estimate", parseFloat)
+  .option("--priority <number>", "Set priority: 0=None, 1=Urgent, 2=High, 3=Medium, 4=Low", parseInt)
   .action(async (title, opts) => {
+    if (opts.estimate !== undefined && (isNaN(opts.estimate) || opts.estimate <= 0)) {
+      console.error(JSON.stringify({ error: "Estimate must be a positive number." }));
+      process.exit(1);
+    }
+    if (opts.priority !== undefined && (isNaN(opts.priority) || opts.priority < 0 || opts.priority > 4)) {
+      console.error(JSON.stringify({ error: "Priority must be 0-4: 0=None, 1=Urgent, 2=High, 3=Medium, 4=Low." }));
+      process.exit(1);
+    }
     const globalOpts = program.opts();
     await runCommand(globalOpts, (ctx) =>
       create(ctx, title, {
@@ -176,6 +198,8 @@ program
         parent: opts.parent,
         state: opts.state,
         label: opts.label,
+        estimate: opts.estimate,
+        priority: opts.priority,
       })
     );
   });

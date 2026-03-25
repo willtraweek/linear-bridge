@@ -1,0 +1,23 @@
+{
+  "name": "linear-bridge",
+  "version": "1.0.0",
+  "description": "CLI wrapper around Linear's GraphQL API for the openclaw agent system",
+  "type": "module",
+  "bin": {
+    "linear-bridge": "./src/cli.ts"
+  },
+  "scripts": {
+    "dev": "bun run src/cli.ts",
+    "test": "bun test",
+    "test:watch": "bun test --watch"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@linear/sdk": "^80.0.0",
+    "commander": "^14.0.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^6.0.2"
+  }
+}

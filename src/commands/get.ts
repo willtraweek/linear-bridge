@@ -75,6 +75,7 @@ export async function get(
       commentCount: 0,
       hasSubIssues: false,
       priority: child.priority,
+      estimate: child.estimate,
       assignee: (await child.assignee)?.name || null,
     });
   }
@@ -106,6 +107,7 @@ export async function get(
     commentCount: comments.length,
     hasSubIssues: children.length > 0,
     priority: issue.priority,
+    estimate: issue.estimate,
     assignee: (await issue.assignee)?.name || null,
     comments,
     children,

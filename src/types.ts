@@ -14,6 +14,7 @@ export interface IssueSummary {
   commentCount: number;
   hasSubIssues: boolean;
   priority: number;
+  estimate: number | null;
   assignee: string | null;
 }
 

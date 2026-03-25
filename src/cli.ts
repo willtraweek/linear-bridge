@@ -88,6 +88,8 @@ program
   .option("--remove-label <name>", "Remove a label (repeatable)", collect, [])
   .option("--project <name-or-id>", "Assign issue to a project (by name or UUID)")
   .option("--remove-project", "Remove issue from its current project")
+  .option("--estimate <number>", "Set point estimate", parseNum)
+  .option("--priority <number>", "Set priority: 0=None, 1=Urgent, 2=High, 3=Medium, 4=Low", parseNum)
   .action(async (issueId, opts) => {
     const globalOpts = program.opts();
     await runCommand(globalOpts, (ctx) =>
@@ -97,6 +99,8 @@ program
         removeLabel: opts.removeLabel,
         project: opts.project,
         removeProject: opts.removeProject,
+        estimate: opts.estimate,
+        priority: opts.priority,
       })
     );
   });
@@ -168,6 +172,8 @@ program
   .option("--parent <issue-id>", "Parent issue ID to create as sub-issue")
   .option("--state <name>", "Initial workflow state")
   .option("--label <name>", "Add a label (repeatable)", collect, [])
+  .option("--estimate <number>", "Set point estimate", parseNum)
+  .option("--priority <number>", "Set priority: 0=None, 1=Urgent, 2=High, 3=Medium, 4=Low", parseNum)
   .action(async (title, opts) => {
     const globalOpts = program.opts();
     await runCommand(globalOpts, (ctx) =>
@@ -176,6 +182,8 @@ program
         parent: opts.parent,
         state: opts.state,
         label: opts.label,
+        estimate: opts.estimate,
+        priority: opts.priority,
       })
     );
   });
@@ -238,6 +246,15 @@ projectCmd
     const globalOpts = program.opts();
     await runCommand(globalOpts, (ctx) => projectList(ctx));
   });
+
+// Strict numeric parser — avoids parseInt radix bug with Commander's (value, previous) signature
+function parseNum(value: string): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) {
+    throw new Error(`Invalid number: ${value}`);
+  }
+  return n;
+}
 
 // Helper for repeatable options
 function collect(value: string, previous: string[]): string[] {

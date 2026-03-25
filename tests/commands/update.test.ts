@@ -15,13 +15,15 @@ mock.module("../../src/commands/project.js", () => ({
   },
 }));
 
-function makeMockCtx(issueExists = true): RunContext {
+function makeMockCtx(issueExists = true): RunContext & { updateIssueCalls: Array<[string, Record<string, unknown>]> } {
   const currentLabels = [
     { id: "lbl-1", name: "urgent" },
     { id: "lbl-2", name: "needs product decision" },
   ];
 
-  return {
+  const updateIssueCalls: Array<[string, Record<string, unknown>]> = [];
+
+  const ctx = {
     client: {
       issue: () => {
         if (!issueExists) throw new Error("Entity not found");
@@ -31,6 +33,8 @@ function makeMockCtx(issueExists = true): RunContext {
           title: "Test issue",
           labels: () => Promise.resolve({ nodes: currentLabels }),
           state: Promise.resolve({ name: "Todo" }),
+          estimate: 3,
+          priority: 2,
         });
       },
       team: () =>
@@ -54,11 +58,17 @@ function makeMockCtx(issueExists = true): RunContext {
         }),
       issueLabels: () =>
         Promise.resolve({ nodes: [] }),
-      updateIssue: () => Promise.resolve({ success: true }),
+      updateIssue: (id: string, input: Record<string, unknown>) => {
+        updateIssueCalls.push([id, input]);
+        return Promise.resolve({ success: true });
+      },
     } as never,
     teamId: "team-1",
     teamKey: "ENG",
+    updateIssueCalls,
   };
+
+  return ctx as RunContext & { updateIssueCalls: Array<[string, Record<string, unknown>]> };
 }
 
 describe("update command", () => {
@@ -129,6 +139,67 @@ describe("update command", () => {
     const ctx = makeMockCtx();
     expect(
       update(ctx, "ENG-42", { project: "Ghost Project" })
+    ).rejects.toThrow(InputError);
+  });
+
+  test("sets estimate on issue", async () => {
+    const ctx = makeMockCtx();
+    const result = await update(ctx, "ENG-42", { estimate: 5 });
+    expect(result.identifier).toBe("ENG-42");
+    expect(ctx.updateIssueCalls).toContainEqual(["uuid-1", { estimate: 5 }]);
+  });
+
+  test("sets priority on issue", async () => {
+    const ctx = makeMockCtx();
+    const result = await update(ctx, "ENG-42", { priority: 1 });
+    expect(result.identifier).toBe("ENG-42");
+    expect(ctx.updateIssueCalls).toContainEqual(["uuid-1", { priority: 1 }]);
+  });
+
+  test("sets priority 0 (None)", async () => {
+    const ctx = makeMockCtx();
+    const result = await update(ctx, "ENG-42", { priority: 0 });
+    expect(result.identifier).toBe("ENG-42");
+    expect(ctx.updateIssueCalls).toContainEqual(["uuid-1", { priority: 0 }]);
+  });
+
+  test("combines estimate and priority with other flags", async () => {
+    const ctx = makeMockCtx();
+    const result = await update(ctx, "ENG-42", {
+      state: "In Progress",
+      estimate: 3,
+      priority: 2,
+    });
+    expect(result.identifier).toBe("ENG-42");
+    expect(ctx.updateIssueCalls).toContainEqual(["uuid-1", { estimate: 3 }]);
+    expect(ctx.updateIssueCalls).toContainEqual(["uuid-1", { priority: 2 }]);
+  });
+
+  test("throws on invalid estimate (negative)", async () => {
+    const ctx = makeMockCtx();
+    expect(
+      update(ctx, "ENG-42", { estimate: -1 })
+    ).rejects.toThrow(InputError);
+  });
+
+  test("throws on invalid estimate (zero)", async () => {
+    const ctx = makeMockCtx();
+    expect(
+      update(ctx, "ENG-42", { estimate: 0 })
+    ).rejects.toThrow(InputError);
+  });
+
+  test("throws on invalid priority (out of range)", async () => {
+    const ctx = makeMockCtx();
+    expect(
+      update(ctx, "ENG-42", { priority: 5 })
+    ).rejects.toThrow(InputError);
+  });
+
+  test("throws on invalid priority (negative)", async () => {
+    const ctx = makeMockCtx();
+    expect(
+      update(ctx, "ENG-42", { priority: -1 })
     ).rejects.toThrow(InputError);
   });
 });

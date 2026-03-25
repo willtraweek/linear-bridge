@@ -40,6 +40,8 @@ function makeMockCtx(parentExists = true): RunContext {
             title: input.title as string,
             url: "https://linear.app/team/ENG-99",
             state: Promise.resolve({ name: "Todo" }),
+            estimate: (input.estimate as number) ?? null,
+            priority: (input.priority as number) ?? 0,
           }),
         }),
     } as never,
@@ -94,6 +96,52 @@ describe("create command", () => {
     const ctx = makeMockCtx();
     expect(
       create(ctx, "New issue", { label: ["nonexistent"] })
+    ).rejects.toThrow(InputError);
+  });
+
+  test("creates issue with estimate and priority", async () => {
+    const ctx = makeMockCtx();
+    const result = await create(ctx, "Sized task", {
+      estimate: 5,
+      priority: 1,
+    });
+    expect(result.identifier).toBe("ENG-99");
+    expect(result.estimate).toBe(5);
+    expect(result.priority).toBe(1);
+  });
+
+  test("creates issue with priority 0 (None)", async () => {
+    const ctx = makeMockCtx();
+    const result = await create(ctx, "Low priority", { priority: 0 });
+    expect(result.identifier).toBe("ENG-99");
+    expect(result.priority).toBe(0);
+  });
+
+  test("throws on invalid estimate (negative)", async () => {
+    const ctx = makeMockCtx();
+    expect(
+      create(ctx, "Bad estimate", { estimate: -1 })
+    ).rejects.toThrow(InputError);
+  });
+
+  test("throws on invalid estimate (zero)", async () => {
+    const ctx = makeMockCtx();
+    expect(
+      create(ctx, "Bad estimate", { estimate: 0 })
+    ).rejects.toThrow(InputError);
+  });
+
+  test("throws on invalid priority (out of range)", async () => {
+    const ctx = makeMockCtx();
+    expect(
+      create(ctx, "Bad priority", { priority: 5 })
+    ).rejects.toThrow(InputError);
+  });
+
+  test("throws on invalid priority (non-integer)", async () => {
+    const ctx = makeMockCtx();
+    expect(
+      create(ctx, "Bad priority", { priority: 2.5 })
     ).rejects.toThrow(InputError);
   });
 });

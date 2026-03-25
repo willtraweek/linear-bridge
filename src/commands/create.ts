@@ -78,6 +78,20 @@ export async function create(
     }
   }
 
+  // Validate estimate
+  if (opts.estimate !== undefined) {
+    if (typeof opts.estimate !== "number" || !Number.isFinite(opts.estimate) || opts.estimate <= 0) {
+      throw new InputError("Estimate must be a positive number.");
+    }
+  }
+
+  // Validate priority
+  if (opts.priority !== undefined) {
+    if (typeof opts.priority !== "number" || !Number.isInteger(opts.priority) || opts.priority < 0 || opts.priority > 4) {
+      throw new InputError("Priority must be 0-4: 0=None, 1=Urgent, 2=High, 3=Medium, 4=Low.");
+    }
+  }
+
   const payload = await ctx.client.createIssue({
     title: title.trim(),
     teamId: ctx.teamId,

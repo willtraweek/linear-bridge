@@ -111,11 +111,17 @@ export async function update(
 
   // Set estimate
   if (opts.estimate !== undefined) {
+    if (typeof opts.estimate !== "number" || !Number.isFinite(opts.estimate) || opts.estimate <= 0) {
+      throw new InputError("Estimate must be a positive number.");
+    }
     await ctx.client.updateIssue(issue.id, { estimate: opts.estimate });
   }
 
   // Set priority
   if (opts.priority !== undefined) {
+    if (typeof opts.priority !== "number" || !Number.isInteger(opts.priority) || opts.priority < 0 || opts.priority > 4) {
+      throw new InputError("Priority must be 0-4: 0=None, 1=Urgent, 2=High, 3=Medium, 4=Low.");
+    }
     await ctx.client.updateIssue(issue.id, { priority: opts.priority });
   }
 

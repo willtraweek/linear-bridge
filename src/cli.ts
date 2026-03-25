@@ -28,7 +28,7 @@ program
       "  3  Authentication failure (bad/expired API key)\n" +
       "  4  Rate limited (retry after delay)"
   )
-  .version("1.0.0")
+  .version("0.2.0")
   .option("--team <key>", "Linear team key (e.g., ENG). Overrides LINEAR_TEAM_KEY env var")
   .option("--human", "Human-readable output instead of JSON");
 

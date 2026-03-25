@@ -1,11 +1,14 @@
 import type { RunContext } from "../runner.js";
 import { InputError } from "../errors.js";
 import { validateState } from "../cache.js";
+import { resolveProject } from "./project.js";
 
 interface UpdateOpts {
   state?: string;
   addLabel?: string[];
   removeLabel?: string[];
+  project?: string;
+  removeProject?: boolean;
 }
 
 interface UpdateResult {
@@ -21,9 +24,9 @@ export async function update(
   issueId: string,
   opts: UpdateOpts
 ): Promise<UpdateResult> {
-  if (!opts.state && !opts.addLabel?.length && !opts.removeLabel?.length) {
+  if (!opts.state && !opts.addLabel?.length && !opts.removeLabel?.length && !opts.project && !opts.removeProject) {
     throw new InputError(
-      "At least one update flag required: --state, --add-label, or --remove-label"
+      "At least one update flag required: --state, --add-label, --remove-label, --project, or --remove-project"
     );
   }
 
@@ -89,6 +92,17 @@ export async function update(
         await ctx.client.updateIssue(issue.id, { labelIds: remaining });
       }
     }
+  }
+
+  // Set project
+  if (opts.project) {
+    const resolved = await resolveProject(ctx.client, opts.project);
+    await ctx.client.updateIssue(issue.id, { projectId: resolved.id });
+  }
+
+  // Remove from project
+  if (opts.removeProject) {
+    await ctx.client.updateIssue(issue.id, { projectId: null });
   }
 
   // Re-fetch for response

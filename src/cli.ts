@@ -8,6 +8,7 @@ import { update } from "./commands/update.js";
 import { comment } from "./commands/comment.js";
 import { relate } from "./commands/relate.js";
 import { create } from "./commands/create.js";
+import { projectCreate, projectGet, projectList } from "./commands/project.js";
 
 const program = new Command();
 
@@ -15,8 +16,8 @@ program
   .name("linear-bridge")
   .description(
     "CLI wrapper around Linear's GraphQL API for the openclaw agent system.\n\n" +
-      "Provides 6 commands for managing the ticket lifecycle:\n" +
-      "scan, get, update, comment, relate, create.\n\n" +
+      "Provides issue commands (scan, get, update, comment, relate, create)\n" +
+      "and project commands (project create, project get, project list).\n\n" +
       "Configuration:\n" +
       "  LINEAR_API_KEY   (required) Personal API key for Linear\n" +
       "  LINEAR_TEAM_KEY  (optional) Default team key, overridden by --team flag\n\n" +
@@ -73,17 +74,20 @@ program
 program
   .command("update <issue-id>")
   .description(
-    "Update an issue: move state and/or add/remove labels.\n\n" +
+    "Update an issue: move state, add/remove labels, assign to project.\n\n" +
       "At least one update flag is required. Multiple flags can be combined.\n\n" +
       "Examples:\n" +
       "  linear-bridge update ENG-42 --state 'In Progress'\n" +
       "  linear-bridge update ENG-42 --state Backlog --add-label 'needs product decision'\n" +
       "  linear-bridge update ENG-42 --remove-label urgent\n" +
-      "  linear-bridge update ENG-42 --add-label 'requires engineering review' --add-label urgent"
+      '  linear-bridge update ENG-42 --project "Q2 Auth Rewrite"\n' +
+      "  linear-bridge update ENG-42 --remove-project"
   )
   .option("--state <name>", "Move issue to this workflow state")
   .option("--add-label <name>", "Add a label (repeatable)", collect, [])
   .option("--remove-label <name>", "Remove a label (repeatable)", collect, [])
+  .option("--project <name-or-id>", "Assign issue to a project (by name or UUID)")
+  .option("--remove-project", "Remove issue from its current project")
   .action(async (issueId, opts) => {
     const globalOpts = program.opts();
     await runCommand(globalOpts, (ctx) =>
@@ -91,6 +95,8 @@ program
         state: opts.state,
         addLabel: opts.addLabel,
         removeLabel: opts.removeLabel,
+        project: opts.project,
+        removeProject: opts.removeProject,
       })
     );
   });
@@ -172,6 +178,65 @@ program
         label: opts.label,
       })
     );
+  });
+
+// ─── project (subcommand group) ─────────────────────────────────────────────
+
+const projectCmd = program
+  .command("project")
+  .description("Manage Linear projects: create, get details, list.");
+
+projectCmd
+  .command("create <name>")
+  .description(
+    "Create a new project.\n\n" +
+      "The project is created in the configured team.\n\n" +
+      "Examples:\n" +
+      '  linear-bridge project create "Q2 Auth Rewrite"\n' +
+      '  linear-bridge project create "Sprint 5" --description "Focus on auth and onboarding"\n' +
+      '  linear-bridge project create "Milestone" --target-date 2026-06-30'
+  )
+  .option("--description <text>", "Project description")
+  .option("--target-date <YYYY-MM-DD>", "Target completion date")
+  .action(async (name, opts) => {
+    const globalOpts = program.opts();
+    await runCommand(globalOpts, (ctx) =>
+      projectCreate(ctx, name, {
+        description: opts.description,
+        targetDate: opts.targetDate,
+      })
+    );
+  });
+
+projectCmd
+  .command("get <name-or-id>")
+  .description(
+    "Get project details including description, issues, and progress.\n\n" +
+      "Accepts a project name or UUID. If multiple projects share a name,\n" +
+      "you'll be asked to use the UUID instead.\n\n" +
+      "Examples:\n" +
+      '  linear-bridge project get "Q2 Auth Rewrite"\n' +
+      "  linear-bridge project get 8a3b4c5d-1234-5678-9abc-def012345678\n" +
+      '  linear-bridge project get "Sprint 5" --human'
+  )
+  .action(async (nameOrId) => {
+    const globalOpts = program.opts();
+    await runCommand(globalOpts, (ctx) => projectGet(ctx, nameOrId));
+  });
+
+projectCmd
+  .command("list")
+  .description(
+    "List projects accessible by the configured team.\n\n" +
+      "Returns project name, status, progress, issue count, and description preview.\n\n" +
+      "Examples:\n" +
+      "  linear-bridge project list\n" +
+      "  linear-bridge project list --team ENG\n" +
+      "  linear-bridge project list --human"
+  )
+  .action(async () => {
+    const globalOpts = program.opts();
+    await runCommand(globalOpts, (ctx) => projectList(ctx));
   });
 
 // Helper for repeatable options

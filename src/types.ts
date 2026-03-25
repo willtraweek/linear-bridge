@@ -40,6 +40,29 @@ export interface CommentDetail {
   createdAt: string;
 }
 
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  status: string;
+  progress: number;
+  health: string;
+  issueCount: number;
+  descriptionPreview: string;
+  url: string;
+}
+
+export interface ProjectDetail extends ProjectSummary {
+  description: string;
+  content: string | null;
+  startDate: string | null;
+  targetDate: string | null;
+  teams: string[];
+  lead: string | null;
+  issues: IssueSummary[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const EXIT_SUCCESS = 0;
 export const EXIT_INPUT_ERROR = 1;
 export const EXIT_UNREACHABLE = 2;

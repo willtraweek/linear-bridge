@@ -3,9 +3,16 @@ import { update } from "../../src/commands/update.js";
 import { InputError } from "../../src/errors.js";
 import type { RunContext } from "../../src/runner.js";
 
-// Mock validateState to always pass
+// Mock validateState and resolveProject
 mock.module("../../src/cache.js", () => ({
   validateState: async () => {},
+}));
+
+mock.module("../../src/commands/project.js", () => ({
+  resolveProject: async (_client: unknown, nameOrId: string) => {
+    if (nameOrId === "Ghost Project") throw new (require("../../src/errors.js").InputError)("Project 'Ghost Project' not found.");
+    return { id: "proj-1", name: nameOrId };
+  },
 }));
 
 function makeMockCtx(issueExists = true): RunContext {
@@ -103,6 +110,25 @@ describe("update command", () => {
     const ctx = makeMockCtx();
     expect(
       update(ctx, "ENG-42", { addLabel: ["nonexistent-label"] })
+    ).rejects.toThrow(InputError);
+  });
+
+  test("sets project on issue", async () => {
+    const ctx = makeMockCtx();
+    const result = await update(ctx, "ENG-42", { project: "Q2 Auth" });
+    expect(result.identifier).toBe("ENG-42");
+  });
+
+  test("removes project from issue", async () => {
+    const ctx = makeMockCtx();
+    const result = await update(ctx, "ENG-42", { removeProject: true });
+    expect(result.identifier).toBe("ENG-42");
+  });
+
+  test("throws when project not found", async () => {
+    const ctx = makeMockCtx();
+    expect(
+      update(ctx, "ENG-42", { project: "Ghost Project" })
     ).rejects.toThrow(InputError);
   });
 });

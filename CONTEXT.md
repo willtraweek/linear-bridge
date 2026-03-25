@@ -88,7 +88,9 @@ For v1, a personal API key is simpler. OAuth if/when this becomes a shared tool.
 The official Linear TypeScript SDK provides typed models, pagination, and auth handling. Bun runs TypeScript natively — no compilation needed for development. MCP wrapper was considered and deferred; agents call CLI via shell just as effectively.
 
 ### Implementation details
-- **6 commands:** `scan`, `get`, `update`, `comment`, `relate`, `create`
+- **Issue commands:** `scan`, `get`, `update`, `comment`, `relate`, `create`
+- **Project commands:** `project create`, `project get`, `project list`
+- **Update extensions:** `--project` and `--remove-project` flags to assign issues to projects
 - **Config:** `LINEAR_API_KEY` env var (required), `--team` flag / `LINEAR_TEAM_KEY` env var for team scoping
 - **Output:** JSON by default, `--human` flag for debugging
 - **Exit codes:** 0 (success), 1 (input error), 2 (unreachable), 3 (auth failure), 4 (rate limited)
@@ -116,6 +118,12 @@ bun run src/cli.ts create "Fix null check" --parent ENG-42
 
 # Create blocking relation
 bun run src/cli.ts relate ENG-42 ENG-38 --type blocks
+
+# Project management
+bun run src/cli.ts project list
+bun run src/cli.ts project create "Q2 Auth Rewrite" --description "Rewrite auth system"
+bun run src/cli.ts project get "Q2 Auth Rewrite"
+bun run src/cli.ts update ENG-42 --project "Q2 Auth Rewrite"
 ```
 
 ## The ticket lifecycle it must support

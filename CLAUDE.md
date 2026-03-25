@@ -33,8 +33,8 @@ LINEAR_API_KEY=lin_api_xxx bun run src/cli.ts scan --state Todo --team ENG
 - `src/errors.ts` — Error classification (exit codes 0-4)
 - `src/output.ts` — JSON/human output formatting
 - `src/types.ts` — Shared types and exit code constants
-- `src/commands/` — One file per command (scan, get, update, comment, relate, create)
-- `tests/` — Bun test runner, mocked LinearClient (61 tests)
+- `src/commands/` — One file per command (scan, get, update, comment, relate, create, project)
+- `tests/` — Bun test runner, mocked LinearClient (79 tests)
 
 ## Exit codes
 
